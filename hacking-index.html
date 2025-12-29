@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSS clamp() Generator - Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    background: #0a0e17;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #00ffff;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 255, 0.03) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(0, 255, 255, 0.03) 3px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* CRT flicker */
+  @keyframes flicker {
+    0% { opacity: 0.98; }
+    50% { opacity: 1; }
+    100% { opacity: 0.98; }
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+    z-index: 999;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Terminal header */
+  .terminal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  }
+
+  .terminal-header h1 {
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    color: #00ffff;
+    letter-spacing: 0.1em;
+  }
+
+  .terminal-header::before {
+    content: '> ';
+    color: #00ff88;
+  }
+
+  .terminal-header p {
+    font-size: 0.9rem;
+    color: #00ff88;
+    opacity: 0.8;
+    letter-spacing: 0.05em;
+  }
+
+  /* Main terminal */
+  .terminal {
+    background: rgba(10, 20, 30, 0.8);
+    border: 2px solid #00ffff;
+    border-radius: 0.5rem;
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.3),
+      0 0 40px rgba(0, 255, 255, 0.1),
+      inset 0 0 60px rgba(0, 255, 255, 0.05);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .terminal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(180deg, rgba(0, 255, 255, 0.1) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .terminal-body {
+    padding: 2.5rem;
+  }
+
+  /* Section divider */
+  .section {
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .section::after {
+    content: '';
+    position: absolute;
+    bottom: -1.25rem;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    opacity: 0.3;
+  }
+
+  .section:last-child::after {
+    display: none;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 0.75rem;
+    color: #00ff88;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title::before {
+    content: '//';
+    color: #00ffff;
+    opacity: 0.5;
+  }
+
+  /* Input grid */
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input-group label {
+    font-size: 0.75rem;
+    color: #00ffff;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  .input-group label::before {
+    content: '$ ';
+    color: #00ff88;
+  }
+
+  .input-group input {
+    padding: 0.75rem 1rem;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid #00ffff;
+    border-radius: 0.25rem;
+    color: #00ffff;
+    font-size: 1rem;
+    font-family: 'Share Tech Mono', monospace;
+    transition: all 0.2s;
+  }
+
+  .input-group input:focus {
+    outline: none;
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    border-color: #00ff88;
+  }
+
+  /* Output box */
+  .output-box {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #00ffff;
+    border-radius: 0.25rem;
+    padding: 1.5rem;
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .output-label {
+    font-size: 0.7rem;
+    color: #00ff88;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .output-label::before {
+    content: '> ';
+  }
+
+  .copy-btn {
+    background: transparent;
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-family: 'Share Tech Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .copy-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(0, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+  }
+
+  .copy-btn:hover {
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    text-shadow: 0 0 5px #00ffff;
+  }
+
+  .copy-btn:hover::before {
+    width: 200px;
+    height: 200px;
+  }
+
+  .copy-btn:active {
+    transform: scale(0.95);
+  }
+
+  .copy-btn.copied {
+    border-color: #00ff88;
+    color: #00ff88;
+  }
+
+  .clamp-output {
+    color: #00ffff;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    word-break: break-all;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+  }
+
+  .error-message {
+    color: #ff0055;
+    text-shadow: 0 0 5px rgba(255, 0, 85, 0.5);
+  }
+
+  /* Radio grid */
+  .radio-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .radio-option {
+    position: relative;
+  }
+
+  .radio-option input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .radio-option label {
+    display: block;
+    padding: 0.75rem;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid #00ffff;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+  }
+
+  .radio-option input:checked + label {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: #00ff88;
+    color: #00ff88;
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    text-shadow: 0 0 5px #00ff88;
+  }
+
+  .radio-option label:hover {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+
+  /* Slider */
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .slider-value {
+    color: #00ff88;
+    font-weight: 700;
+    text-shadow: 0 0 5px #00ff88;
+  }
+
+  .viewport-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 255, 255, 0.2);
+    outline: none;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .viewport-slider::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, 
+      transparent,
+      rgba(0, 255, 255, 0.1) 50%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .viewport-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #00ffff;
+    cursor: pointer;
+    box-shadow: 
+      0 0 10px #00ffff,
+      0 0 20px rgba(0, 255, 255, 0.5);
+    border: 2px solid #0a0e17;
+  }
+
+  .viewport-slider::-webkit-slider-thumb:hover {
+    background: #00ff88;
+    box-shadow: 
+      0 0 15px #00ff88,
+      0 0 30px rgba(0, 255, 136, 0.5);
+  }
+
+  .viewport-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #00ffff;
+    cursor: pointer;
+    border: 2px solid #0a0e17;
+    box-shadow: 
+      0 0 10px #00ffff,
+      0 0 20px rgba(0, 255, 255, 0.5);
+  }
+
+  .viewport-slider::-moz-range-thumb:hover {
+    background: #00ff88;
+    box-shadow: 
+      0 0 15px #00ff88,
+      0 0 30px rgba(0, 255, 136, 0.5);
+  }
+
+  /* Preview */
+  .preview-area {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #00ffff;
+    border-radius: 0.25rem;
+    padding: 3rem 2rem;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      repeating-linear-gradient(0deg, transparent 0px, rgba(0, 255, 255, 0.03) 1px, transparent 2px),
+      repeating-linear-gradient(90deg, transparent 0px, rgba(0, 255, 255, 0.03) 1px, transparent 2px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* Preview types */
+  .preview-font {
+    color: #00ffff;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  }
+
+  .preview-padding {
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 5px #00ffff;
+  }
+
+  .preview-margin-container {
+    border: 2px dashed rgba(0, 255, 255, 0.4);
+    padding: 1rem;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .preview-margin {
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    padding: 1.5rem;
+    text-align: center;
+    text-shadow: 0 0 5px #00ffff;
+  }
+
+  .preview-gap {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .preview-gap-item {
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    padding: 2rem 1.5rem;
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    font-size: 1.5rem;
+    text-shadow: 0 0 10px #00ffff;
+  }
+
+  /* Footer */
+  .terminal-footer {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    color: #00ff88;
+    line-height: 1.6;
+  }
+
+  .terminal-footer::before {
+    content: '[INFO] ';
+    color: #00ffff;
+    font-weight: 700;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .terminal-header h1 {
+      font-size: 1.8rem;
+    }
+
+    .terminal-body {
+      padding: 1.5rem;
+    }
+
+    .input-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .radio-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Glow animation */
+  @keyframes glow {
+    0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+    50% { text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff; }
+  }
+
+  .terminal-header h1 {
+    animation: glow 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Terminal header -->
+  <div class="terminal-header">
+    <h1>CLAMP() GENERATOR</h1>
+    <p>[ FLUID RESPONSIVE SYSTEM ]</p>
+  </div>
+
+  <!-- Main terminal -->
+  <div class="terminal">
+    <div class="terminal-body">
+
+      <!-- Input section -->
+      <div class="section">
+        <div class="section-title">System Parameters</div>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Min Viewport</label>
+            <input id="minVW" type="number" value="320">
+          </div>
+          <div class="input-group">
+            <label>Max Viewport</label>
+            <input id="maxVW" type="number" value="1200">
+          </div>
+          <div class="input-group">
+            <label>Min Value</label>
+            <input id="minSize" type="number" value="16">
+          </div>
+          <div class="input-group">
+            <label>Max Value</label>
+            <input id="maxSize" type="number" value="48">
+          </div>
+        </div>
+      </div>
+
+      <!-- Output section -->
+      <div class="section">
+        <div class="section-title">Generated Output</div>
+        <div class="output-box">
+          <div class="output-header">
+            <span class="output-label">CSS Code</span>
+            <button id="copyBtn" class="copy-btn" onclick="copyClamp()">Copy</button>
+          </div>
+          <div id="result" class="clamp-output"></div>
+        </div>
+      </div>
+
+      <!-- Radio section -->
+      <div class="section">
+        <div class="section-title">Preview Mode</div>
+        <div class="radio-grid">
+          <div class="radio-option">
+            <input type="radio" name="previewType" id="radioFont" value="font" checked>
+            <label for="radioFont">Font</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="previewType" id="radioPadding" value="padding">
+            <label for="radioPadding">Padding</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="previewType" id="radioMargin" value="margin">
+            <label for="radioMargin">Margin</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="previewType" id="radioGap" value="gap">
+            <label for="radioGap">Gap</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider section -->
+      <div class="section">
+        <div class="section-title">Viewport Simulator</div>
+        <div class="slider-header">
+          <span style="font-size: 0.8rem; opacity: 0.7;">Current Width</span>
+          <span id="sliderValue" class="slider-value">640px</span>
+        </div>
+        <input id="viewportSlider" type="range" class="viewport-slider" min="320" max="1200" value="640">
+      </div>
+
+      <!-- Preview section -->
+      <div class="section">
+        <div class="section-title">Live Preview</div>
+        <div class="preview-area" id="previewContainer">
+          <div id="preview" class="preview-font">
+            The quick brown fox jumps over the lazy dog
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="terminal-footer">
+        Output format: <strong>rem + vw</strong> units. Optimized for responsive typography, spacing (padding, margin, gap), and fluid layouts. Use viewport simulator to test scaling behavior across different screen sizes.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll('input[type="number"]');
+inputs.forEach(el => el.addEventListener('input', updateClamp));
+
+const radioButtons = document.querySelectorAll('input[name="previewType"]');
+radioButtons.forEach(el => el.addEventListener('change', updatePreview));
+
+const minVWEl   = document.getElementById('minVW');
+const maxVWEl   = document.getElementById('maxVW');
+const minSizeEl = document.getElementById('minSize');
+const maxSizeEl = document.getElementById('maxSize');
+const resultEl  = document.getElementById('result');
+const previewEl = document.getElementById('preview');
+const previewContainer = document.getElementById('previewContainer');
+const viewportSlider = document.getElementById('viewportSlider');
+const sliderValue = document.getElementById('sliderValue');
+const copyBtn = document.getElementById('copyBtn');
+
+let currentClampValue = '';
+
+function updateSliderRange() {
+  const minVW = +minVWEl.value;
+  const maxVW = +maxVWEl.value;
+  
+  viewportSlider.min = minVW;
+  viewportSlider.max = maxVW;
+  viewportSlider.value = Math.min(Math.max(viewportSlider.value, minVW), maxVW);
+  sliderValue.textContent = viewportSlider.value + 'px';
+}
+
+function updateClamp() {
+  const minVW = +minVWEl.value;
+  const maxVW = +maxVWEl.value;
+  const minPx = +minSizeEl.value;
+  const maxPx = +maxSizeEl.value;
+
+  if (minVW >= maxVW || minPx >= maxPx) {
+    resultEl.innerHTML = '<span class="error-message">[ERROR] Invalid parameters: Min must be < Max</span>';
+    return;
+  }
+
+  const slope = (maxPx - minPx) / (maxVW - minVW);
+  const vwVal = (slope * 100).toFixed(2);
+  const interceptPx = minPx - slope * minVW;
+
+  const minRem = (minPx / 16).toFixed(2);
+  const maxRem = (maxPx / 16).toFixed(2);
+  const interceptRem = (interceptPx / 16).toFixed(2);
+
+  currentClampValue = `clamp(${minRem}rem, ${interceptRem}rem + ${vwVal}vw, ${maxRem}rem)`;
+  resultEl.textContent = currentClampValue;
+
+  updateSliderRange();
+  updatePreview();
+}
+
+function updatePreview() {
+  const previewType = document.querySelector('input[name="previewType"]:checked').value;
+  const currentViewport = +viewportSlider.value;
+  
+  const minVW = +minVWEl.value;
+  const maxVW = +maxVWEl.value;
+  const minPx = +minSizeEl.value;
+  const maxPx = +maxSizeEl.value;
+  
+  const slope = (maxPx - minPx) / (maxVW - minVW);
+  const calculatedPx = Math.max(minPx, Math.min(maxPx, minPx + slope * (currentViewport - minVW)));
+  const calculatedRem = calculatedPx / 16;
+  
+  previewEl.className = '';
+  previewEl.style = '';
+  
+  while (previewContainer.firstChild) {
+    previewContainer.removeChild(previewContainer.firstChild);
+  }
+  
+  switch(previewType) {
+    case 'font':
+      previewEl.className = 'preview-font';
+      previewEl.style.fontSize = calculatedRem + 'rem';
+      previewEl.innerHTML = 'The quick brown fox jumps over the lazy dog';
+      previewContainer.appendChild(previewEl);
+      break;
+      
+    case 'padding':
+      previewEl.className = 'preview-padding';
+      previewEl.style.padding = calculatedRem + 'rem';
+      previewEl.innerHTML = 'Content with padding';
+      previewContainer.appendChild(previewEl);
+      break;
+      
+    case 'margin':
+      const marginWrapper = document.createElement('div');
+      marginWrapper.className = 'preview-margin-container';
+      previewEl.className = 'preview-margin';
+      previewEl.style.margin = calculatedRem + 'rem';
+      previewEl.innerHTML = 'Content with margin';
+      marginWrapper.appendChild(previewEl);
+      previewContainer.appendChild(marginWrapper);
+      break;
+      
+    case 'gap':
+      previewEl.className = 'preview-gap';
+      previewEl.style.gap = calculatedRem + 'rem';
+      previewEl.innerHTML = `
+        <div class="preview-gap-item">1</div>
+        <div class="preview-gap-item">2</div>
+        <div class="preview-gap-item">3</div>
+      `;
+      previewContainer.appendChild(previewEl);
+      break;
+  }
+}
+
+viewportSlider.addEventListener('input', (e) => {
+  sliderValue.textContent = e.target.value + 'px';
+  updatePreview();
+});
+
+function copyClamp() {
+  navigator.clipboard.writeText(currentClampValue);
+  copyBtn.textContent = 'COPIED';
+  copyBtn.classList.add('copied');
+  
+  setTimeout(() => {
+    copyBtn.textContent = 'COPY';
+    copyBtn.classList.remove('copied');
+  }, 2000);
+}
+
+updateClamp();
+</script>
+
+</body>
+</html>
