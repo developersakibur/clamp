@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "clamp() Generator",
+  "version": "1.0",
+  "description": "Generate fluid CSS clamp() values",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "clamp() Generator"
+  },
+  "permissions": ["clipboardWrite"]
+}

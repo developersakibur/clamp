@@ -1,719 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>CSS clamp() Generator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 2rem 1rem;
-    color: #1e293b;
-  }
-
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  /* Header */
-  .header {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: white;
-  }
-
-  .header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  }
-
-  .header p {
-    font-size: 1.1rem;
-    opacity: 0.95;
-  }
-
-  /* Main card */
-  .card {
-    background: white;
-    border-radius: 1.5rem;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    overflow: hidden;
-  }
-
-  .card-body {
-    padding: 2.5rem;
-  }
-
-  /* Input grid */
-  .input-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .input-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .input-group label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .input-group input {
-    padding: 0.875rem 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .input-group input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  /* Output section */
-  .output-section {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .output-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.5), transparent);
-  }
-
-  .output-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .output-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .copy-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  }
-
-  .copy-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  }
-
-  .copy-btn:active {
-    transform: translateY(0);
-  }
-
-  .copy-btn.copied {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  }
-
-  .clamp-output {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    color: #e2e8f0;
-    line-height: 1.6;
-    word-break: break-all;
-  }
-
-  /* Radio buttons */
-  .radio-section {
-    margin-bottom: 2rem;
-  }
-
-  .radio-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 1rem;
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .radio-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .radio-option {
-    position: relative;
-  }
-
-  .radio-option input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .radio-option label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.875rem 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    font-size: 0.9rem;
-    background: white;
-  }
-
-  .radio-option input:checked + label {
-    border-color: #667eea;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    color: #667eea;
-    font-weight: 600;
-  }
-
-  .radio-option label:hover {
-    border-color: #cbd5e1;
-  }
-
-  /* Slider section */
-  .slider-section {
-    margin-bottom: 2rem;
-  }
-
-  .slider-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .slider-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .slider-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    color: #667eea;
-    font-size: 1rem;
-  }
-
-  .slider-container {
-    position: relative;
-    padding: 1rem 0;
-  }
-
-  .viewport-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 8px;
-    border-radius: 10px;
-    background: #e2e8f0;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .viewport-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    transition: all 0.2s;
-  }
-
-  .viewport-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-  }
-
-  .viewport-slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    transition: all 0.2s;
-  }
-
-  .viewport-slider::-moz-range-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-  }
-
-  /* Preview section */
-  .preview-section {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 1rem;
-    padding: 3rem 2rem;
-    min-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #e2e8f0;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .preview-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      repeating-linear-gradient(0deg, transparent, transparent 19px, #e2e8f0 19px, #e2e8f0 20px),
-      repeating-linear-gradient(90deg, transparent, transparent 19px, #e2e8f0 19px, #e2e8f0 20px);
-    opacity: 0.3;
-    pointer-events: none;
-  }
-
-  /* Preview types */
-  .preview-font {
-    font-weight: 600;
-    color: #1e293b;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-
-  .preview-padding {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 1rem;
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  }
-
-  .preview-margin-container {
-    border: 3px dashed #cbd5e1;
-    border-radius: 1rem;
-    padding: 1rem;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-  }
-
-  .preview-margin {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    text-align: center;
-    font-weight: 600;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  }
-
-  .preview-gap {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-  }
-
-  .preview-gap-item {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 1rem;
-    padding: 2rem 1.5rem;
-    font-weight: 600;
-    flex: 1;
-    min-width: 100px;
-    text-align: center;
-    font-size: 1.5rem;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  }
-
-  /* Footer note */
-  .footer-note {
-    margin-top: 2rem;
-    padding: 1.25rem;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-    border-radius: 0.75rem;
-    border-left: 4px solid #667eea;
-    font-size: 0.9rem;
-    color: #64748b;
-    line-height: 1.6;
-  }
-
-  .footer-note strong {
-    color: #667eea;
-    font-weight: 600;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .header h1 {
-      font-size: 2rem;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clamp() Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .card-body {
-      padding: 1.5rem;
+    body {
+      width: 400px;
+      background: #1a1a1a;
+      color: #e5e5e5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 20px;
+    }
+
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: #888;
     }
 
     .input-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      color: #aaa;
+      font-weight: 500;
+    }
+
+    .input-group input {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #fff;
+      transition: all 0.2s;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #4a9eff;
+      background: #2d2d2d;
+    }
+
+    .input-group input:hover {
+      border-color: #4a4a4a;
+    }
+
+    .radio-section {
+      margin-bottom: 16px;
+    }
+
+    .radio-label {
+      font-size: 12px;
+      color: #aaa;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
     }
 
     .radio-grid {
-      grid-template-columns: repeat(2, 1fr);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
     }
-  }
 
-  /* Error state */
-  .error-message {
-    color: #ef4444;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-  }
-</style>
+    .radio-option {
+      position: relative;
+    }
+
+    .radio-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-option label {
+      display: block;
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .radio-option label:hover {
+      border-color: #4a4a4a;
+      background: #2d2d2d;
+    }
+
+    .radio-option input[type="radio"]:checked + label {
+      background: #4a9eff;
+      border-color: #4a9eff;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .output-section {
+      margin-bottom: 16px;
+    }
+
+    .output-label {
+      font-size: 12px;
+      color: #aaa;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .clamp-output {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      word-break: break-all;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+    }
+
+    .clamp-output:hover {
+      border-color: #4a4a4a;
+      background: #2d2d2d;
+    }
+
+    .clamp-output.copied {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #fff;
+    }
+
+    .error-message {
+      color: #ef4444;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.5;
+      padding-top: 12px;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .footer-note strong {
+      color: #888;
+    }
+  </style>
 </head>
 <body>
-
-<div class="container">
-  <!-- Header -->
   <div class="header">
     <h1>clamp() Generator</h1>
-    <p>Fluid responsive values with perfect control</p>
+    <p>Fluid responsive values</p>
   </div>
 
-  <!-- Main card -->
-  <div class="card">
-    <div class="card-body">
-
-      <!-- Input grid -->
-      <div class="input-grid">
-        <div class="input-group">
-          <label>Min Viewport (px)</label>
-          <input id="minVW" type="number" value="320">
-        </div>
-        <div class="input-group">
-          <label>Max Viewport (px)</label>
-          <input id="maxVW" type="number" value="1440">
-        </div>
-        <div class="input-group">
-          <label>Min Value (px)</label>
-          <input id="minSize" type="number" value="32" min="0">
-        </div>
-        <div class="input-group">
-          <label>Max Value (px)</label>
-          <input id="maxSize" type="number" value="48" min="10">
-        </div>
-      </div>
-
-      <!-- Output section -->
-      <div class="output-section">
-        <div class="output-header">
-          <span class="output-label">CSS Output</span>
-          <button id="copyBtn" class="copy-btn" onclick="copyClamp()">Copy</button>
-        </div>
-        <div id="result" class="clamp-output"></div>
-      </div>
-
-      <!-- Radio buttons -->
-      <div class="radio-section">
-        <span class="radio-label">Preview Property</span>
-        <div class="radio-grid">
-          <div class="radio-option">
-            <input type="radio" name="previewType" id="radioFont" value="font" checked>
-            <label for="radioFont">Font Size</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" name="previewType" id="radioPadding" value="padding">
-            <label for="radioPadding">Padding</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" name="previewType" id="radioMargin" value="margin">
-            <label for="radioMargin">Margin</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" name="previewType" id="radioGap" value="gap">
-            <label for="radioGap">Gap</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slider -->
-      <div class="slider-section">
-        <div class="slider-header">
-          <span class="slider-label">Viewport Simulator</span>
-          <span id="sliderValue" class="slider-value">640px</span>
-        </div>
-        <div class="slider-container">
-          <input id="viewportSlider" type="range" class="viewport-slider" min="320" max="1200" value="640">
-        </div>
-      </div>
-
-      <!-- Preview -->
-      <div class="preview-section" id="previewContainer">
-        <div id="preview" class="preview-font">
-          The quick brown fox jumps over the lazy dog
-        </div>
-      </div>
-
-      <!-- Footer note -->
-      <div class="footer-note">
-        <strong>Pro tip:</strong> This generator outputs <strong>rem + vw</strong> units for fluid scaling. Perfect for typography, spacing (padding, margin, gap), and any property that benefits from responsive values. Drag the slider to preview how values scale across different viewport sizes.
-      </div>
-
+  <div class="input-grid">
+    <div class="input-group">
+      <label>Min Viewport (px)</label>
+      <input id="minVW" type="number" value="320">
+    </div>
+    <div class="input-group">
+      <label>Max Viewport (px)</label>
+      <input id="maxVW" type="number" value="1440">
+    </div>
+    <div class="input-group">
+      <label>Min Value (px)</label>
+      <input id="minSize" type="number" value="32" min="0">
+    </div>
+    <div class="input-group">
+      <label>Max Value (px)</label>
+      <input id="maxSize" type="number" value="48" min="10">
     </div>
   </div>
-</div>
 
-<script>
-const inputs = document.querySelectorAll('input[type="number"]');
+  <div class="radio-section">
+    <span class="radio-label">Property Type</span>
+    <div class="radio-grid">
+      <div class="radio-option">
+        <input type="radio" name="propertyType" id="radioFont" value="font" checked>
+        <label for="radioFont">Font</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="propertyType" id="radioPadding" value="padding">
+        <label for="radioPadding">Padding</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="propertyType" id="radioMargin" value="margin">
+        <label for="radioMargin">Margin</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="propertyType" id="radioGap" value="gap">
+        <label for="radioGap">Gap</label>
+      </div>
+    </div>
+  </div>
 
-const radioButtons = document.querySelectorAll('input[name="previewType"]');
-radioButtons.forEach(el => el.addEventListener('change', updatePreview));
+  <div class="output-section">
+    <span class="output-label">CSS Output (Click to Copy)</span>
+    <div id="result" class="clamp-output"></div>
+  </div>
 
-const minVWEl   = document.getElementById('minVW');
-const maxVWEl   = document.getElementById('maxVW');
-const minSizeEl = document.getElementById('minSize');
-const maxSizeEl = document.getElementById('maxSize');
-const resultEl  = document.getElementById('result');
-const previewEl = document.getElementById('preview');
-const previewContainer = document.getElementById('previewContainer');
-const viewportSlider = document.getElementById('viewportSlider');
-const sliderValue = document.getElementById('sliderValue');
-const copyBtn = document.getElementById('copyBtn');
+  <div class="footer-note">
+    <strong>Tip:</strong> Values auto-adjust based on property type. Change Max Value or Property Type to see different scaling ratios optimized for each use case.
+  </div>
 
-let currentClampValue = '';
+  <script>
+    const minVWEl = document.getElementById('minVW');
+    const maxVWEl = document.getElementById('maxVW');
+    const minSizeEl = document.getElementById('minSize');
+    const maxSizeEl = document.getElementById('maxSize');
+    const resultEl = document.getElementById('result');
+    const radioButtons = document.querySelectorAll('input[name="propertyType"]');
 
-// Golden Ratio Rule function
-function getMobileSize(desktopPx) {
-  const minSize = 10;
-  let reduction;
-  
-  if (desktopPx >= 60) {
-    reduction = 0.40; // Hero: 40%
-  } else if (desktopPx >= 40) {
-    reduction = 0.30; // Large headings: 30%
-  } else if (desktopPx >= 28) {
-    reduction = 0.25; // Medium headings: 25%
-  } else if (desktopPx >= 20) {
-    reduction = 0.20; // Small headings: 20%
-  } else if (desktopPx >= 16) {
-    reduction = 0.10; // Body: 10%
-  } else {
-    reduction = 0.05; // Small: 5%
-  }
-  
-  const mobileSize = Math.round(desktopPx * (1 - reduction));
-  return Math.max(mobileSize, minSize);
-}
+    let currentClampValue = '';
 
-function updateSliderRange() {
-  const minVW = +minVWEl.value;
-  const maxVW = +maxVWEl.value;
-  
-  viewportSlider.min = minVW;
-  viewportSlider.max = maxVW;
-  viewportSlider.value = Math.min(Math.max(viewportSlider.value, minVW), maxVW);
-  sliderValue.textContent = viewportSlider.value + 'px';
-}
-
-function updateClamp() {
-  const minVW = +minVWEl.value;
-  const maxVW = +maxVWEl.value;
-  const minPx = +minSizeEl.value;
-  const maxPx = +maxSizeEl.value;
-
-  // Check if values are valid numbers
-  if (!minVW || !maxVW || !minPx || !maxPx) {
-    return; // Don't show error, just wait for valid input
-  }
-
-  if (minVW >= maxVW || minPx >= maxPx) {
-    resultEl.innerHTML = '<span class="error-message">[ERROR] Invalid parameters: Min must be < Max</span>';
-    return;
-  }
-
-  const slope = (maxPx - minPx) / (maxVW - minVW);
-  const vwVal = (slope * 100).toFixed(2);
-  const interceptPx = minPx - slope * minVW;
-
-  const minRem = (minPx / 16).toFixed(2);
-  const maxRem = (maxPx / 16).toFixed(2);
-  const interceptRem = (interceptPx / 16).toFixed(2);
-
-  currentClampValue = `clamp(${minRem}rem, ${interceptRem}rem + ${vwVal}vw, ${maxRem}rem)`;
-  resultEl.textContent = currentClampValue;
-
-  updateSliderRange();
-  updatePreview();
-}
-
-function updatePreview() {
-  const previewType = document.querySelector('input[name="previewType"]:checked').value;
-  const currentViewport = +viewportSlider.value;
-  
-  const minVW = +minVWEl.value;
-  const maxVW = +maxVWEl.value;
-  const minPx = +minSizeEl.value;
-  const maxPx = +maxSizeEl.value;
-  
-  if (!minVW || !maxVW || !minPx || !maxPx) return;
-  
-  const slope = (maxPx - minPx) / (maxVW - minVW);
-  const calculatedPx = Math.max(minPx, Math.min(maxPx, minPx + slope * (currentViewport - minVW)));
-  const calculatedRem = calculatedPx / 16;
-  
-  previewEl.className = '';
-  previewEl.style = '';
-  
-  while (previewContainer.firstChild) {
-    previewContainer.removeChild(previewContainer.firstChild);
-  }
-  
-  switch(previewType) {
-    case 'font':
-      previewEl.className = 'preview-font';
-      previewEl.style.fontSize = calculatedRem + 'rem';
-      previewEl.innerHTML = 'The quick brown fox jumps over the lazy dog';
-      previewContainer.appendChild(previewEl);
-      break;
+    // Context-aware reduction rules
+    function getMobileSize(desktopPx, propertyType) {
+      const minSize = 10;
+      let multiplier;
       
-    case 'padding':
-      previewEl.className = 'preview-padding';
-      previewEl.style.padding = calculatedRem + 'rem';
-      previewEl.innerHTML = 'Content with padding';
-      previewContainer.appendChild(previewEl);
-      break;
+      switch(propertyType) {
+        case 'font':
+          if (desktopPx >= 60) multiplier = 0.60;
+          else if (desktopPx >= 40) multiplier = 0.70;
+          else if (desktopPx >= 30) multiplier = 0.75;
+          else if (desktopPx >= 20) multiplier = 0.80;
+          else if (desktopPx >= 16) multiplier = 0.90;
+          else multiplier = 0.95;
+          break;
+          
+        case 'padding':
+          if (desktopPx >= 64) multiplier = 0.65;
+          else if (desktopPx >= 48) multiplier = 0.70;
+          else if (desktopPx >= 32) multiplier = 0.75;
+          else if (desktopPx >= 24) multiplier = 0.80;
+          else if (desktopPx >= 16) multiplier = 0.85;
+          else multiplier = 0.90;
+          break;
+          
+        case 'margin':
+          if (desktopPx >= 64) multiplier = 0.60;
+          else if (desktopPx >= 48) multiplier = 0.65;
+          else if (desktopPx >= 32) multiplier = 0.70;
+          else if (desktopPx >= 24) multiplier = 0.75;
+          else if (desktopPx >= 16) multiplier = 0.80;
+          else multiplier = 0.85;
+          break;
+          
+        case 'gap':
+          if (desktopPx >= 64) multiplier = 0.70;
+          else if (desktopPx >= 48) multiplier = 0.75;
+          else if (desktopPx >= 32) multiplier = 0.80;
+          else if (desktopPx >= 24) multiplier = 0.85;
+          else if (desktopPx >= 16) multiplier = 0.90;
+          else multiplier = 0.95;
+          break;
+      }
       
-    case 'margin':
-      const marginWrapper = document.createElement('div');
-      marginWrapper.className = 'preview-margin-container';
-      previewEl.className = 'preview-margin';
-      previewEl.style.margin = calculatedRem + 'rem';
-      previewEl.innerHTML = 'Content with margin';
-      marginWrapper.appendChild(previewEl);
-      previewContainer.appendChild(marginWrapper);
-      break;
+      const mobileSize = Math.round(desktopPx * multiplier);
+      return Math.max(mobileSize, minSize);
+    }
+
+    function updateMinSize() {
+      const maxPx = +maxSizeEl.value;
+      const selectedProperty = document.querySelector('input[name="propertyType"]:checked').value;
       
-    case 'gap':
-      previewEl.className = 'preview-gap';
-      previewEl.style.gap = calculatedRem + 'rem';
-      previewEl.innerHTML = `
-        <div class="preview-gap-item">1</div>
-        <div class="preview-gap-item">2</div>
-        <div class="preview-gap-item">3</div>
-      `;
-      previewContainer.appendChild(previewEl);
-      break;
-  }
-}
+      if (maxPx && maxPx > 0) {
+        const calculatedMin = getMobileSize(maxPx, selectedProperty);
+        minSizeEl.value = calculatedMin;
+      }
+      
+      updateClamp();
+    }
 
-// MinSize changes - just update clamp
-minSizeEl.addEventListener('input', () => {
-  updateClamp();
-});
+    function updateClamp() {
+      const minVW = +minVWEl.value;
+      const maxVW = +maxVWEl.value;
+      const minPx = +minSizeEl.value;
+      const maxPx = +maxSizeEl.value;
 
-// MaxSize changes - ALWAYS auto-fill minSize with rule (even if min is empty)
-maxSizeEl.addEventListener('input', () => {
-  const maxPx = +maxSizeEl.value;
-  
-  // Only auto-fill if maxPx is a valid number
-  if (maxPx && maxPx > 0) {
-    const suggestedMin = getMobileSize(maxPx);
-    minSizeEl.value = suggestedMin;
-  }
-  
-  updateClamp();
-});
+      // Reset green background when generating new clamp
+      resultEl.classList.remove('copied');
 
-// Viewport changes - just update clamp
-minVWEl.addEventListener('input', () => {
-  updateClamp();
-});
+      if (!minVW || !maxVW || !minPx || !maxPx) {
+        return;
+      }
 
-maxVWEl.addEventListener('input', () => {
-  updateClamp();
-});
+      if (minVW >= maxVW || minPx >= maxPx) {
+        resultEl.innerHTML = '<span class="error-message">Invalid: Min must be < Max</span>';
+        currentClampValue = '';
+        return;
+      }
 
-// Slider changes
-viewportSlider.addEventListener('input', (e) => {
-  sliderValue.textContent = e.target.value + 'px';
-  updatePreview();
-});
+      const slope = (maxPx - minPx) / (maxVW - minVW);
+      const vwVal = (slope * 100).toFixed(2);
+      const interceptPx = minPx - slope * minVW;
 
-// Copy function
-function copyClamp() {
-  navigator.clipboard.writeText(currentClampValue);
-  copyBtn.textContent = 'COPIED';
-  copyBtn.classList.add('copied');
-  
-  setTimeout(() => {
-    copyBtn.textContent = 'COPY';
-    copyBtn.classList.remove('copied');
-  }, 2000);
-}
+      const minRem = (minPx / 16).toFixed(2);
+      const maxRem = (maxPx / 16).toFixed(2);
+      const interceptRem = (interceptPx / 16).toFixed(2);
 
-// Initial render
-updateClamp();
-</script>
+      currentClampValue = `clamp(${minRem}rem, ${interceptRem}rem + ${vwVal}vw, ${maxRem}rem)`;
+      resultEl.textContent = currentClampValue;
+    }
 
+    function copyClamp() {
+      if (!currentClampValue) return;
+      
+      navigator.clipboard.writeText(currentClampValue).then(() => {
+        resultEl.classList.add('copied');
+      });
+    }
+
+    // Event listeners
+    minVWEl.addEventListener('input', updateClamp);
+    maxVWEl.addEventListener('input', updateClamp);
+    minSizeEl.addEventListener('input', updateClamp);
+    maxSizeEl.addEventListener('input', updateMinSize);
+    radioButtons.forEach(radio => radio.addEventListener('change', updateMinSize));
+    resultEl.addEventListener('click', copyClamp);
+
+    // Initial render
+    updateClamp();
+  </script>
 </body>
 </html>
