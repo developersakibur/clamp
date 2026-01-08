@@ -54,7 +54,7 @@
       resultEl.classList.remove("copied");
 
       if (!minVW || !maxVW || !minPx || !maxPx) {
-        resultEl.textContent = "Enter all values";
+        resultEl.innerHTML = '<span class="error-message">Enter max values</span>';
         currentClampValue = "";
         return;
       }

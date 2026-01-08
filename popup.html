@@ -9,27 +9,28 @@
 </head>
 
 <body>
+  <h1>clamp(developersakibur)</h1>
   <div class="input-grid">
     <div class="input-group">
       <label></label>
-      <input id="minSize" type="number" value="" min="1" placeholder="Min">
+      <input id="minSize" type="number" value="" min="5" max="400" step="1" placeholder="Min">
     </div>
     <div class="input-group">
       <label></label>
-      <input id="maxSize" type="number" value="" min="10" autofocus placeholder="Max">
+      <input id="maxSize" type="number" value="" min="10" max="500" step="1" placeholder="Max" autofocus>
     </div>
   </div>
 
   <div class="radio-grid">
     <div class="radio-option">
       <input type="radio" name="propertyType" id="radioText" value="text" data-min-vp="16" data-max-vp="72"
-        data-min-value="14" data-max-value="56" data-small-subtract="2" checked>
+        data-min-value="14" data-max-value="54" data-small-subtract="2" checked>
       <label for="radioText">Text</label>
     </div>
 
     <div class="radio-option">
       <input type="radio" name="propertyType" id="radioSpacing" value="spacing" data-min-vp="20" data-max-vp="100"
-        data-min-value="18" data-max-value="60" data-small-subtract="2">
+        data-min-value="16" data-max-value="60" data-small-subtract="4">
       <label for="radioSpacing">Spacing</label>
     </div>
   </div>
