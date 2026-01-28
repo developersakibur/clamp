@@ -1,14 +1,17 @@
 // Default configurations
 const DEFAULT_CONFIGS = {
   text: { minValue: 14, minVp: 16, maxValue: 54, maxVp: 72 },
-  padding: { minValue: 15, minVp: 20, maxValue: 55, maxVp: 100 },
-  margin: { minValue: 10, minVp: 20, maxValue: 50, maxVp: 100 },
-  gap: { minValue: 5, minVp: 10, maxValue: 50, maxVp: 100 }
+  padding: { minValue: 15, minVp: 20, maxValue: 55, maxVp: 100 }
+};
+
+const DEFAULT_VIEWPORT = {
+  minWidth: 320,
+  maxWidth: 1440
 };
 
 // DOM Elements
-const minVWEl = { value: 320 };
-const maxVWEl = { value: 1440 };
+const minVWEl = document.getElementById("minWidth");
+const maxVWEl = document.getElementById("maxWidth");
 const minSizeEl = document.getElementById("minSize");
 const maxSizeEl = document.getElementById("maxSize");
 const resultEl = document.getElementById("result");
@@ -17,56 +20,74 @@ const configMinValue = document.getElementById("configMinValue");
 const configMinVp = document.getElementById("configMinVp");
 const configMaxValue = document.getElementById("configMaxValue");
 const configMaxVp = document.getElementById("configMaxVp");
+const configToggle = document.getElementById("configToggle");
+const configSection = document.querySelector(".config-section");
 
 let currentClampValue = "";
 let configs = { ...DEFAULT_CONFIGS };
+let viewport = { ...DEFAULT_VIEWPORT };
 let saveTimeout = null;
 
 // Initialize
 async function init() {
-  await loadConfigs();
+  await loadSettings();
   applyConfigsToRadios();
+  applyViewportValues();
   const selectedRadio = document.querySelector('input[name="propertyType"]:checked');
   loadConfigInputs(selectedRadio.value);
   updateMinSize();
 }
 
-// Load configs from chrome.storage.sync or localStorage fallback
-async function loadConfigs() {
+// Load all settings from chrome.storage.sync
+async function loadSettings() {
   return new Promise((resolve) => {
-    // Check if chrome.storage is available (extension context)
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-      chrome.storage.sync.get(['propertyConfigs'], (result) => {
-        if (result.propertyConfigs) {
-          configs = result.propertyConfigs;
-        }
+    chrome.storage.sync.get(['propertyConfigs', 'viewportSettings', 'configPanelOpen'], (result) => {
+      if (chrome.runtime.lastError) {
+        console.error('Storage error:', chrome.runtime.lastError);
         resolve();
-      });
-    } else {
-      // Fallback to localStorage for testing outside extension
-      const stored = localStorage.getItem('propertyConfigs');
-      if (stored) {
-        configs = JSON.parse(stored);
+        return;
       }
+      
+      if (result.propertyConfigs) {
+        configs = result.propertyConfigs;
+      }
+      
+      if (result.viewportSettings) {
+        viewport = result.viewportSettings;
+      }
+      
+      if (result.configPanelOpen) {
+        configToggle.checked = true;
+        configSection.style.display = 'block';
+      }
+      
       resolve();
-    }
+    });
   });
 }
 
-// Save configs to chrome.storage.sync or localStorage fallback (debounced)
-function saveConfigs() {
+// Save settings to chrome.storage.sync (debounced)
+function saveSettings() {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-      chrome.storage.sync.set({ propertyConfigs: configs }, () => {
-        console.log('Configs saved to chrome.storage');
-      });
-    } else {
-      // Fallback to localStorage
-      localStorage.setItem('propertyConfigs', JSON.stringify(configs));
-      console.log('Configs saved to localStorage');
-    }
+    chrome.storage.sync.set({ 
+      propertyConfigs: configs,
+      viewportSettings: viewport,
+      configPanelOpen: configToggle.checked
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('Save error:', chrome.runtime.lastError);
+      } else {
+        console.log('Settings saved');
+      }
+    });
   }, 300);
+}
+
+// Apply viewport values to inputs
+function applyViewportValues() {
+  minVWEl.value = viewport.minWidth;
+  maxVWEl.value = viewport.maxWidth;
 }
 
 // Apply configs to radio data attributes
@@ -74,21 +95,25 @@ function applyConfigsToRadios() {
   radioButtons.forEach((radio) => {
     const type = radio.value;
     const config = configs[type];
-    radio.dataset.minVp = config.minVp;
-    radio.dataset.maxVp = config.maxVp;
-    radio.dataset.minValue = config.minValue;
-    radio.dataset.maxValue = config.maxValue;
-    radio.dataset.smallSubtract = config.minValue - config.minVp;
+    if (config) {
+      radio.dataset.minVp = config.minVp;
+      radio.dataset.maxVp = config.maxVp;
+      radio.dataset.minValue = config.minValue;
+      radio.dataset.maxValue = config.maxValue;
+      radio.dataset.smallSubtract = config.minValue - config.minVp;
+    }
   });
 }
 
 // Load config inputs for selected radio
 function loadConfigInputs(type) {
   const config = configs[type];
-  configMinValue.value = config.minValue;
-  configMinVp.value = config.minVp;
-  configMaxValue.value = config.maxValue;
-  configMaxVp.value = config.maxVp;
+  if (config) {
+    configMinValue.value = config.minValue;
+    configMinVp.value = config.minVp;
+    configMaxValue.value = config.maxValue;
+    configMaxVp.value = config.maxVp;
+  }
 }
 
 // Save config from inputs (with auto-reset on empty)
@@ -106,7 +131,7 @@ function saveConfigFromInputs() {
     configs[type] = { ...DEFAULT_CONFIGS[type] };
     applyConfigsToRadios();
     loadConfigInputs(type);
-    saveConfigs();
+    saveSettings();
     updateMinSize();
     return;
   }
@@ -125,12 +150,35 @@ function saveConfigFromInputs() {
   selectedRadio.dataset.maxValue = maxValue;
   selectedRadio.dataset.smallSubtract = minValue - minVp;
 
-  saveConfigs();
+  saveSettings();
+  updateMinSize();
+}
+
+// Save viewport settings
+function saveViewportSettings() {
+  const minInput = minVWEl.value.trim();
+  const maxInput = maxVWEl.value.trim();
+
+  // Check if both are empty - reset to defaults
+  if (!minInput && !maxInput) {
+    viewport = { ...DEFAULT_VIEWPORT };
+    applyViewportValues();
+    saveSettings();
+    updateMinSize();
+    return;
+  }
+
+  viewport.minWidth = parseInt(minInput) || DEFAULT_VIEWPORT.minWidth;
+  viewport.maxWidth = parseInt(maxInput) || DEFAULT_VIEWPORT.maxWidth;
+
+  saveSettings();
   updateMinSize();
 }
 
 // Get mobile size calculation
 function getMobileSize(desktopPx, propertyType) {
+  if (!desktopPx || desktopPx < 1) return 1;
+  
   if (desktopPx < 10) {
     return Math.max(desktopPx - 1, 1);
   }
@@ -145,7 +193,7 @@ function getMobileSize(desktopPx, propertyType) {
   const maxVP = parseInt(selectedRadio.dataset.maxVp);
   const minValue = parseInt(selectedRadio.dataset.minValue);
   const maxValue = parseInt(selectedRadio.dataset.maxValue);
-  const smallSubtract = Math.abs(minVP - minValue); // Use absolute value
+  const smallSubtract = Math.abs(minVP - minValue);
   
   if (desktopPx < minVP) {
     return Math.max(desktopPx - smallSubtract, 1);
@@ -205,20 +253,21 @@ function copyClamp() {
     });
 }
 
-// Reset to defaults (removed button, keeping function for potential use)
-function resetToDefaults() {
-  const selectedRadio = document.querySelector('input[name="propertyType"]:checked');
-  const type = selectedRadio.value;
-  configs[type] = { ...DEFAULT_CONFIGS[type] };
-  applyConfigsToRadios();
-  loadConfigInputs(type);
-  saveConfigs();
-  updateMinSize();
+// Toggle config panel
+function toggleConfigPanel() {
+  if (configToggle.checked) {
+    configSection.style.display = 'block';
+  } else {
+    configSection.style.display = 'none';
+  }
+  saveSettings();
 }
 
 // Event Listeners
 maxSizeEl.addEventListener("input", updateMinSize);
 minSizeEl.addEventListener("input", updateClamp);
+minVWEl.addEventListener("input", saveViewportSettings);
+maxVWEl.addEventListener("input", saveViewportSettings);
 
 radioButtons.forEach((radio) => {
   radio.addEventListener("change", () => {
@@ -232,8 +281,11 @@ configMinVp.addEventListener("input", saveConfigFromInputs);
 configMaxValue.addEventListener("input", saveConfigFromInputs);
 configMaxVp.addEventListener("input", saveConfigFromInputs);
 
+configToggle.addEventListener("change", toggleConfigPanel);
+
 resultEl.addEventListener("click", copyClamp);
 
+// Mouse wheel handlers
 function handleWheel(e, inputEl) {
   if (document.activeElement === inputEl) {
     e.preventDefault();
@@ -262,55 +314,8 @@ configMinValue.addEventListener("wheel", (e) => handleWheel(e, configMinValue));
 configMinVp.addEventListener("wheel", (e) => handleWheel(e, configMinVp));
 configMaxValue.addEventListener("wheel", (e) => handleWheel(e, configMaxValue));
 configMaxVp.addEventListener("wheel", (e) => handleWheel(e, configMaxVp));
-
-// Listen for messages from background
-if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === "COPY_AND_CLOSE") {
-      if (currentClampValue) {
-        navigator.clipboard.writeText(currentClampValue).then(() => {
-          window.close();
-        });
-      }
-    }
-
-    if (message.action === "SWITCH_RADIO") {
-      const radios = Array.from(document.querySelectorAll('input[name="propertyType"]'));
-      if (!radios.length) return;
-
-      let currentIndex = radios.findIndex((r) => r.checked);
-      let nextIndex = (currentIndex + 1) % radios.length;
-      radios[nextIndex].checked = true;
-      loadConfigInputs(radios[nextIndex].value);
-      updateMinSize();
-    }
-  });
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-    e.preventDefault();
-    
-    const radios = Array.from(document.querySelectorAll('input[name="propertyType"]'));
-    if (!radios.length) return;
-
-    let currentIndex = radios.findIndex((r) => r.checked);
-    let nextIndex = (currentIndex + 1) % radios.length;
-    radios[nextIndex].checked = true;
-    loadConfigInputs(radios[nextIndex].value);
-    updateMinSize();
-  }
-
-  if (e.ctrlKey && e.shiftKey && e.key === 'X') {
-    e.preventDefault();
-    if (currentClampValue) {
-      navigator.clipboard.writeText(currentClampValue).then(() => {
-        window.close();
-      });
-    }
-  }
-});
+minVWEl.addEventListener("wheel", (e) => handleWheel(e, minVWEl));
+maxVWEl.addEventListener("wheel", (e) => handleWheel(e, maxVWEl));
 
 // Initialize on load
 init();

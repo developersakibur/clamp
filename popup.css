@@ -14,12 +14,79 @@ body {
   padding: 20px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 h1 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #00ffff;
-  text-align: center;
-  margin-bottom: 20px;
+}
+
+/* iOS-style Toggle Switch */
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  display: inline-block;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #27272a;
+  transition: all 0.3s ease;
+  border-radius: 26px;
+  border: 1px solid #3f3f46;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #52525b;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: linear-gradient(135deg, #00ffff 0%, #06b6d4 100%);
+  border-color: #00ffff;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+  background-color: #0a0a0b;
+}
+
+.toggle-slider:hover {
+  border-color: #52525b;
+}
+
+.toggle-switch input:checked + .toggle-slider:hover {
+  border-color: #22d3ee;
 }
 
 .input-grid {
@@ -133,6 +200,11 @@ input[type="number"]::-webkit-outer-spin-button {
 .config-row {
   display: flex;
   gap: 10px;
+  margin-bottom: 10px;
+}
+
+.config-row:last-child {
+  margin-bottom: 0;
 }
 
 .config-pair {
